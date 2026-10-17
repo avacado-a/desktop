@@ -97,7 +97,12 @@ generateLicenseMetadata(outRoot)
 
 moveAnalysisFiles()
 
-if (isGitHubActions() && process.platform === 'darwin' && isPublishableBuild) {
+if (
+  isGitHubActions() &&
+  process.platform === 'darwin' &&
+  isPublishableBuild &&
+  Boolean(process.env.APPLE_APPLICATION_CERT)
+) {
   console.log('Setting up keychain…')
   cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
 }
