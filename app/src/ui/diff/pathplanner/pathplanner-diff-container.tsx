@@ -2,13 +2,15 @@ import * as React from 'react'
 import * as Path from 'path'
 import { Repository } from '../../../models/repository'
 import {
-  FileChange,
   WorkingDirectoryFileChange,
   CommittedFileChange,
 } from '../../../models/status'
 import { ITextDiff, DiffSelection } from '../../../models/diff'
 import { IFileContents } from '../syntax-highlighting'
 import { SideBySideDiff } from '../side-by-side-diff'
+
+type ChangedFile = WorkingDirectoryFileChange | CommittedFileChange
+
 import {
   IPathPlannerPath,
   IPathPlannerAuto,
@@ -30,7 +32,7 @@ import { AutoVisualDiff } from './auto-visual-diff'
 
 interface IPathPlannerDiffContainerProps {
   readonly repository: Repository
-  readonly file: FileChange
+  readonly file: ChangedFile
   readonly diff: ITextDiff
   readonly fileContents: IFileContents | null
   readonly readOnly: boolean

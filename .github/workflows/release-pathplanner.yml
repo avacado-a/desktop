@@ -20,15 +20,15 @@ jobs:
           - os: macos-14
             friendlyName: macOS
             arch: arm64
-            artifact-glob: 'dist/GitHubDesktop-*.zip'
+            artifact-glob: 'dist/*.zip'
           - os: windows-2022
             friendlyName: Windows
             arch: x64
-            artifact-glob: 'dist/GitHubDesktopSetup*.exe'
+            artifact-glob: 'dist/installer/*.exe'
           - os: ubuntu-latest
             friendlyName: Linux
             arch: x64
-            artifact-glob: 'dist/GitHubDesktop-linux-*.tar.gz'
+            artifact-glob: 'dist/*.tar.gz'
 
     steps:
       - name: Checkout repository

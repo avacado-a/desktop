@@ -8,7 +8,6 @@ import {
 import {
   samplePath,
   getStateAtTime,
-  ISampledPoint,
 } from '../../../lib/pathplanner/bezier-math'
 import { FieldYear } from './pathplanner-diff-header'
 

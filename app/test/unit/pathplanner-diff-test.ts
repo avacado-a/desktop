@@ -1,4 +1,5 @@
-import { expect } from 'chai'
+import { describe, it } from 'node:test'
+import assert from 'node:assert'
 import {
   evaluateCubicBezier,
   samplePath,
@@ -9,7 +10,6 @@ import {
   parseAuto,
   extractPathNamesFromCommand,
 } from '../../src/lib/pathplanner/context-loader'
-import { IPathPlannerPath, IPathPlannerAuto } from '../../src/models/pathplanner'
 
 describe('PathPlanner Diff Engine', () => {
   it('correctly evaluates a cubic bezier curve', () => {
@@ -19,8 +19,8 @@ describe('PathPlanner Diff Engine', () => {
     const p3 = { x: 1, y: 0 }
 
     const midpoint = evaluateCubicBezier(p0, p1, p2, p3, 0.5)
-    expect(midpoint.x).to.be.closeTo(0.5, 0.001)
-    expect(midpoint.y).to.be.closeTo(0.75, 0.001)
+    assert.ok(Math.abs(midpoint.x - 0.5) < 0.001)
+    assert.ok(Math.abs(midpoint.y - 0.75) < 0.001)
   })
 
   it('parses PathPlanner path JSON and samples waypoints', () => {
@@ -54,16 +54,16 @@ describe('PathPlanner Diff Engine', () => {
     })
 
     const path = parsePath(samplePathJson)
-    expect(path).to.not.be.null
-    expect(path!.waypoints).to.have.lengthOf(2)
+    assert.ok(path !== null)
+    assert.strictEqual(path.waypoints.length, 2)
 
-    const sampled = samplePath(path!)
-    expect(sampled.length).to.be.greaterThan(10)
-    expect(sampled[0].pos.x).to.be.closeTo(1.0, 0.01)
-    expect(sampled[sampled.length - 1].pos.x).to.be.closeTo(4.0, 0.01)
+    const sampled = samplePath(path)
+    assert.ok(sampled.length > 10)
+    assert.ok(Math.abs(sampled[0].pos.x - 1.0) < 0.01)
+    assert.ok(Math.abs(sampled[sampled.length - 1].pos.x - 4.0) < 0.01)
 
-    const rotMid = getRotationAtWaypointRelativePos(path!, 0.5)
-    expect(rotMid).to.be.closeTo(90.0, 1.0)
+    const rotMid = getRotationAtWaypointRelativePos(path, 0.5)
+    assert.ok(Math.abs(rotMid - 90.0) < 1.0)
   })
 
   it('parses PathPlanner auto JSON and extracts referenced path names', () => {
@@ -93,10 +93,10 @@ describe('PathPlanner Diff Engine', () => {
     })
 
     const auto = parseAuto(sampleAutoJson)
-    expect(auto).to.not.be.null
-    expect(auto!.resetOdom).to.be.true
+    assert.ok(auto !== null)
+    assert.strictEqual(auto.resetOdom, true)
 
-    const pathNames = extractPathNamesFromCommand(auto!.command)
-    expect(pathNames).to.deep.equal(['PathAlpha', 'PathBeta'])
+    const pathNames = extractPathNamesFromCommand(auto.command)
+    assert.deepStrictEqual(pathNames, ['PathAlpha', 'PathBeta'])
   })
 })

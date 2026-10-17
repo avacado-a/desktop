@@ -60,7 +60,7 @@ export class AutoVisualDiff extends React.Component<
     diffStatus: 'added' | 'removed' | 'modified' | 'unchanged' = 'unchanged'
   ): JSX.Element {
     let icon = OcticonSymbol.listUnordered
-    let badgeText = cmd.type
+    let badgeText: string = cmd.type
 
     if (cmd.type === 'path') {
       icon = OcticonSymbol.gitBranch

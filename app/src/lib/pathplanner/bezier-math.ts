@@ -2,7 +2,6 @@ import {
   IPoint2D,
   IPathPlannerPath,
   IRotationTarget,
-  IPointTowardsZone,
 } from '../../models/pathplanner'
 
 export interface ISampledPoint {
