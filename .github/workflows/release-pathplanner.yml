@@ -1,0 +1,87 @@
+name: Build & Release PathPlanner Desktop
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.friendlyName }} ${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            friendlyName: macOS
+            arch: arm64
+            artifact-glob: 'dist/GitHubDesktop-*.zip'
+          - os: windows-2022
+            friendlyName: Windows
+            arch: x64
+            artifact-glob: 'dist/GitHubDesktopSetup*.exe'
+          - os: ubuntu-latest
+            friendlyName: Linux
+            arch: x64
+            artifact-glob: 'dist/GitHubDesktop-linux-*.tar.gz'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn --network-timeout 300000
+
+      - name: Build production package
+        env:
+          TARGET_ARCH: ${{ matrix.arch }}
+          NODE_ENV: production
+          RELEASE_CHANNEL: production
+        run: yarn build:prod && yarn package
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-desktop-${{ matrix.friendlyName }}-${{ matrix.arch }}
+          path: ${{ matrix.artifact-glob }}
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+
+      - name: Flatten release artifacts
+        run: |
+          mkdir -p dist-release
+          find release-artifacts -type f -exec cp {} dist-release/ \;
+          ls -la dist-release/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist-release/*
+          name: GitHub Desktop with PathPlanner Visual Diffs ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true

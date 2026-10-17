@@ -40,6 +40,8 @@ if (process.platform === 'darwin') {
   packageOSX()
 } else if (process.platform === 'win32') {
   packageWindows()
+} else if (process.platform === 'linux') {
+  packageLinux()
 } else {
   console.error(`I don't know how to package for ${process.platform} :(`)
   process.exit(1)
@@ -66,6 +68,15 @@ function packageOSX() {
   console.log('Packaging for macOS…')
   cp.execSync(
     `ditto -ck --keepParent "${distPath}/${productName}.app" "${dest}"`
+  )
+}
+
+function packageLinux() {
+  const arch = getDistArchitecture()
+  const destTar = path.join(outputDir, `${productName}-linux-${arch}.tar.gz`)
+  console.log('Packaging for Linux…')
+  cp.execSync(
+    `tar -czf "${destTar}" -C "${outputDir}" "${path.basename(distPath)}"`
   )
 }
 
@@ -114,7 +125,11 @@ function packageWindows() {
     options.remoteReleases = url.toString()
   }
 
-  if (isGitHubActions() && isPublishable()) {
+  if (
+    isGitHubActions() &&
+    isPublishable() &&
+    process.env.AZURE_CODE_SIGNING_TENANT_ID
+  ) {
     assertNonNullable(process.env.RUNNER_TEMP, 'Missing RUNNER_TEMP env var')
 
     const acsPath = join(process.env.RUNNER_TEMP, 'acs')

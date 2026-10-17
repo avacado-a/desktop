@@ -184,9 +184,8 @@ async function packageApp() {
     process.platform === 'darwin' &&
     osxNotarize === undefined
   ) {
-    // we can't publish a mac build without these
-    throw new Error(
-      'Unable to retrieve appleApiKey, appleApiKeyId, and/or appleApiIssuer to notarize macOS build'
+    console.warn(
+      'Notice: Apple notarization secrets not present. Building with ad-hoc signing for fork release.'
     )
   }
 
@@ -237,8 +236,8 @@ async function packageApp() {
       // will sign the app to run locally. We need to disable 'identity-validation'
       // or otherwise it will replace '-' with one of the regular codesigning
       // identities in our system.
-      identity: isDevelopmentBuild ? '-' : undefined,
-      identityValidation: !isDevelopmentBuild,
+      identity: isDevelopmentBuild || !osxNotarize ? '-' : undefined,
+      identityValidation: !isDevelopmentBuild && Boolean(osxNotarize),
     },
     osxNotarize,
     protocols: [

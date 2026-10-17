@@ -31,6 +31,8 @@ import { BinaryFile } from './binary-file'
 import { SideBySideDiff } from './side-by-side-diff'
 import { IFileContents } from './syntax-highlighting'
 import { SubmoduleDiff } from './submodule-diff'
+import { PathPlannerDiffContainer } from './pathplanner/pathplanner-diff-container'
+import * as Path from 'path'
 import { Octicon } from '../octicons'
 import * as OcticonSymbol from '../octicons/octicons.generated'
 
@@ -284,6 +286,28 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private renderTextDiff(diff: ITextDiff) {
+    const ext = Path.extname(this.props.file.path).toLowerCase()
+    if (ext === '.path' || ext === '.auto') {
+      return (
+        <PathPlannerDiffContainer
+          repository={this.props.repository}
+          file={this.props.file}
+          diff={diff}
+          fileContents={this.props.fileContents}
+          readOnly={this.props.readOnly}
+          hideWhitespaceInDiff={this.props.hideWhitespaceInDiff}
+          showSideBySideDiff={this.props.showSideBySideDiff}
+          showDiffCheckMarks={this.props.showDiffCheckMarks}
+          onIncludeChanged={this.props.onIncludeChanged}
+          onDiscardChanges={this.props.onDiscardChanges}
+          askForConfirmationOnDiscardChanges={
+            this.props.askForConfirmationOnDiscardChanges
+          }
+          onHideWhitespaceInDiffChanged={this.props.onHideWhitespaceInDiffChanged}
+        />
+      )
+    }
+
     return (
       <SideBySideDiff
         file={this.props.file}
