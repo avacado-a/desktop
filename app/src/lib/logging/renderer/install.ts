@@ -2,6 +2,15 @@ import { LogLevel } from '../log-level'
 import { formatLogMessage } from '../format-log-message'
 import { sendProxy } from '../../../ui/main-process-proxy'
 
+if (typeof (Number.prototype as any).unref !== 'function') {
+  ;(Number.prototype as any).unref = function () {
+    return this
+  }
+  ;(Number.prototype as any).ref = function () {
+    return this
+  }
+}
+
 const g = global as any
 const ipcLog = sendProxy('log', 2)
 

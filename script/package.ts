@@ -65,9 +65,23 @@ function packageOSX() {
   const dest = getOSXZipPath()
   rmSync(dest, { recursive: true, force: true })
 
+  const appPath = `${distPath}/${productName}.app`
+  const entitlementsDev = path.resolve(__dirname, 'entitlements-dev.plist')
+  console.log('Cleaning and ad-hoc signing macOS bundle…')
+  cp.execSync(`find "${appPath}" -name "._*" -o -name ".DS_Store" -delete || true`)
+  cp.execSync(`xattr -cr "${appPath}" || true`)
+  if (!process.env.APPLE_APPLICATION_CERT) {
+    cp.execSync(
+      `find "${appPath}" \\( -name "*.node" -o -name "copilot-runtime" \\) -exec codesign --force --sign - --entitlements "${entitlementsDev}" {} \\; || true`
+    )
+    cp.execSync(
+      `codesign --force --deep --sign - --entitlements "${entitlementsDev}" "${appPath}"`
+    )
+  }
+
   console.log('Packaging for macOS…')
   cp.execSync(
-    `ditto -ck --keepParent "${distPath}/${productName}.app" "${dest}"`
+    `cd "${distPath}" && zip -r -y -X -q "${dest}" "${productName}.app"`
   )
 }
 

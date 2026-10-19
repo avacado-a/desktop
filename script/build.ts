@@ -234,9 +234,12 @@ async function packageApp() {
     osxSign: {
       optionsForFile: (path: string) => ({
         hardenedRuntime: true,
-        entitlements: entitlementsPath,
+        entitlements:
+          isDevelopmentBuild || !osxNotarize
+            ? `${projectRoot}/script/entitlements-dev.plist`
+            : entitlementsPath,
       }),
-      type: isPublishableBuild ? 'distribution' : 'development',
+      type: isPublishableBuild && osxNotarize ? 'distribution' : 'development',
       // For development, we will use '-' as the identifier so that codesign
       // will sign the app to run locally. We need to disable 'identity-validation'
       // or otherwise it will replace '-' with one of the regular codesigning
