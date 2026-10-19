@@ -20,15 +20,21 @@ jobs:
           - os: macos-14
             friendlyName: macOS
             arch: arm64
-            artifact-glob: 'dist/*.zip'
+            artifact-glob: |
+              dist/*.dmg
+              dist/*.zip
           - os: windows-2022
             friendlyName: Windows
             arch: x64
-            artifact-glob: 'dist/installer/*.exe'
+            artifact-glob: |
+              dist/*.exe
+              dist/*.msi
           - os: ubuntu-latest
             friendlyName: Linux
             arch: x64
-            artifact-glob: 'dist/*.tar.gz'
+            artifact-glob: |
+              dist/*.deb
+              dist/*.tar.gz
 
     steps:
       - name: Checkout repository
@@ -85,3 +91,29 @@ jobs:
           draft: false
           prerelease: false
           generate_release_notes: true
+          body: |
+            ## GitHub Desktop — FRC PathPlanner Edition
+            Custom build of GitHub Desktop featuring interactive 2D field trajectory diffs for `.path` files (Overlay, Side-by-Side, Onion Skin, Scrubber, 2026 Default Field) and autonomous command routine diffs for `.auto` files, while keeping all standard code diffs 100% untouched.
+
+            ---
+
+            ### 📦 Easy Installation by OS
+
+            #### 🪟 Windows (`GitHubDesktopSetup-x64.exe` or `.msi`)
+            1. Download **`GitHubDesktopSetup-x64.exe`**.
+            2. Double-click to install and launch automatically (if Windows SmartScreen prompts, click **More info** → **Run anyway**).
+
+            #### 🍎 macOS Apple Silicon (`GitHubDesktop-macOS-arm64.dmg` or `.zip`)
+            1. Download and open **`GitHubDesktop-macOS-arm64.dmg`**.
+            2. Drag **`GitHub Desktop.app`** into the **`Applications`** folder.
+            3. Double-click **`Open First (Bypass Gatekeeper).command`** inside the DMG (or run `xattr -cr "/Applications/GitHub Desktop.app"` once in Terminal) to clear macOS quarantine on unnotarized builds.
+
+            #### 🐧 Linux (`GitHubDesktop-linux-x64.deb` or `.tar.gz`)
+            * **Ubuntu / Debian (`.deb`)**:
+              ```bash
+              sudo apt install ./GitHubDesktop-linux-x64.deb
+              ```
+            * **Any Linux Distro (`.tar.gz`)**:
+              ```bash
+              tar -xzf GitHub.Desktop-linux-x64.tar.gz && ./GitHub\ Desktop-linux-x64/github-desktop
+              ```

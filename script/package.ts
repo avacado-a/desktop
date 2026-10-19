@@ -68,7 +68,9 @@ function packageOSX() {
   const appPath = `${distPath}/${productName}.app`
   const entitlementsDev = path.resolve(__dirname, 'entitlements-dev.plist')
   console.log('Cleaning and ad-hoc signing macOS bundle…')
-  cp.execSync(`find "${appPath}" -name "._*" -o -name ".DS_Store" -delete || true`)
+  cp.execSync(
+    `find "${appPath}" -name "._*" -o -name ".DS_Store" -delete || true`
+  )
   cp.execSync(`xattr -cr "${appPath}" || true`)
   if (!process.env.APPLE_APPLICATION_CERT) {
     cp.execSync(
@@ -79,19 +81,87 @@ function packageOSX() {
     )
   }
 
-  console.log('Packaging for macOS…')
+  console.log('Packaging for macOS (.zip and .dmg)…')
   cp.execSync(
     `cd "${distPath}" && zip -r -y -X -q "${dest}" "${productName}.app"`
   )
+
+  const arch = getDistArchitecture()
+  const dmgStaging = path.join(outputDir, 'dmg-staging')
+  const dmgDest = path.join(outputDir, `GitHubDesktop-macOS-${arch}.dmg`)
+  rmSync(dmgStaging, { recursive: true, force: true })
+  rmSync(dmgDest, { recursive: true, force: true })
+  cp.execSync(`mkdir -p "${dmgStaging}"`)
+  cp.execSync(`cp -R "${appPath}" "${dmgStaging}/"`)
+  cp.execSync(`ln -s /Applications "${dmgStaging}/Applications"`)
+  const helperScript = `#!/bin/bash
+echo "Removing macOS quarantine attribute for GitHub Desktop..."
+xattr -cr "/Applications/${productName}.app" 2>/dev/null || true
+xattr -cr "$(dirname "$0")/${productName}.app" 2>/dev/null || true
+echo "Done! Opening GitHub Desktop..."
+open "/Applications/${productName}.app" 2>/dev/null || open "$(dirname "$0")/${productName}.app"
+`
+  writeFileSync(
+    path.join(dmgStaging, 'Open First (Bypass Gatekeeper).command'),
+    helperScript,
+    { mode: 0o755 }
+  )
+  cp.execSync(
+    `hdiutil create -volname "${productName}" -srcfolder "${dmgStaging}" -ov -format UDZO "${dmgDest}"`
+  )
+  rmSync(dmgStaging, { recursive: true, force: true })
 }
 
 function packageLinux() {
   const arch = getDistArchitecture()
   const destTar = path.join(outputDir, `${productName}-linux-${arch}.tar.gz`)
-  console.log('Packaging for Linux…')
+  console.log('Packaging for Linux (.tar.gz and .deb)…')
   cp.execSync(
     `tar -czf "${destTar}" -C "${outputDir}" "${path.basename(distPath)}"`
   )
+
+  try {
+    const debArch = arch === 'arm64' ? 'arm64' : 'amd64'
+    const debRoot = path.join(outputDir, 'deb-staging')
+    const debDest = path.join(outputDir, `GitHubDesktop-linux-${arch}.deb`)
+    rmSync(debRoot, { recursive: true, force: true })
+    cp.execSync(
+      `mkdir -p "${debRoot}/DEBIAN" "${debRoot}/opt/github-desktop" "${debRoot}/usr/bin" "${debRoot}/usr/share/applications"`
+    )
+    cp.execSync(`cp -R "${distPath}/"* "${debRoot}/opt/github-desktop/"`)
+    cp.execSync(
+      `ln -s /opt/github-desktop/github-desktop "${debRoot}/usr/bin/github-desktop"`
+    )
+    const control = `Package: github-desktop-pathplanner
+Version: ${getVersion()}
+Section: devel
+Priority: optional
+Architecture: ${debArch}
+Maintainer: GitHub Desktop PathPlanner Fork
+Description: GitHub Desktop with FRC PathPlanner (.path and .auto) visual diff viewer
+`
+    writeFileSync(path.join(debRoot, 'DEBIAN', 'control'), control)
+    const desktopEntry = `[Desktop Entry]
+Name=GitHub Desktop (PathPlanner)
+Comment=GitHub Desktop with FRC PathPlanner Visual Diffs
+Exec=/opt/github-desktop/github-desktop %U
+Terminal=false
+Type=Application
+Categories=Development;RevisionControl;
+`
+    writeFileSync(
+      path.join(
+        debRoot,
+        'usr/share/applications',
+        'github-desktop-pathplanner.desktop'
+      ),
+      desktopEntry
+    )
+    cp.execSync(`dpkg-deb --build "${debRoot}" "${debDest}"`)
+    rmSync(debRoot, { recursive: true, force: true })
+  } catch (e) {
+    console.warn('Warning: failed to create .deb package:', e)
+  }
 }
 
 function packageWindows() {
