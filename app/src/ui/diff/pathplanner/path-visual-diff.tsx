@@ -44,7 +44,7 @@ export class PathVisualDiff extends React.Component<
     super(props)
     this.state = {
       mode: 'overlay',
-      fieldYear: 'field25',
+      fieldYear: 'field26',
       showControlHandles: true,
       showRobotFootprints: true,
       showZonesAndMarkers: true,

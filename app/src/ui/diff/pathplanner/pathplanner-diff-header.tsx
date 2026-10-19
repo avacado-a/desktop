@@ -10,6 +10,7 @@ export type FieldYear = 'field26' | 'field25' | 'field24' | 'grid-only'
 interface IPathPlannerDiffHeaderProps {
   readonly mode: PathPlannerDiffViewMode
   readonly onModeChanged: (mode: PathPlannerDiffViewMode) => void
+  readonly isAuto?: boolean
 
   readonly fieldYear: FieldYear
   readonly onFieldYearChanged: (year: FieldYear) => void
@@ -49,20 +50,24 @@ export class PathPlannerDiffHeader extends React.Component<IPathPlannerDiffHeade
               className={this.props.mode === 'overlay' ? 'active' : ''}
               onClick={() => this.props.onModeChanged('overlay')}
             >
-              Overlay
+              {this.props.isAuto ? 'Visual' : 'Overlay'}
             </Button>
-            <Button
-              className={this.props.mode === 'side-by-side' ? 'active' : ''}
-              onClick={() => this.props.onModeChanged('side-by-side')}
-            >
-              Side-by-Side
-            </Button>
-            <Button
-              className={this.props.mode === 'onion-skin' ? 'active' : ''}
-              onClick={() => this.props.onModeChanged('onion-skin')}
-            >
-              Onion Skin
-            </Button>
+            {!this.props.isAuto && (
+              <>
+                <Button
+                  className={this.props.mode === 'side-by-side' ? 'active' : ''}
+                  onClick={() => this.props.onModeChanged('side-by-side')}
+                >
+                  Side-by-Side
+                </Button>
+                <Button
+                  className={this.props.mode === 'onion-skin' ? 'active' : ''}
+                  onClick={() => this.props.onModeChanged('onion-skin')}
+                >
+                  Onion Skin
+                </Button>
+              </>
+            )}
             <Button
               className={this.props.mode === 'raw-json' ? 'active' : ''}
               onClick={() => this.props.onModeChanged('raw-json')}

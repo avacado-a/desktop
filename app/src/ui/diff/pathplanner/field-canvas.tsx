@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { encodePathAsUrl } from '../../../lib/path'
 import {
   IPathPlannerPath,
   IPathPlannerSettings,
@@ -14,6 +15,8 @@ import { FieldYear } from './pathplanner-diff-header'
 interface IFieldCanvasProps {
   readonly oldPath: IPathPlannerPath | null
   readonly newPath: IPathPlannerPath | null
+  readonly oldPaths?: ReadonlyArray<IPathPlannerPath>
+  readonly newPaths?: ReadonlyArray<IPathPlannerPath>
   readonly settings: IPathPlannerSettings
   readonly navgrid: INavGrid
   readonly fieldYear: FieldYear
@@ -52,24 +55,22 @@ export class FieldCanvas extends React.Component<IFieldCanvasProps> {
     }
 
     const img = new Image()
-    let imageName = 'field25.png'
-    if (this.props.fieldYear === 'field26') {
-      imageName = 'field26.png'
+    let imageName = 'field26.png'
+    if (this.props.fieldYear === 'field25') {
+      imageName = 'field25.png'
     } else if (this.props.fieldYear === 'field24') {
       imageName = 'field24.png'
     }
 
-    // Try loading bundled static asset or fallback
-    img.src = `static/pathplanner/${imageName}`
+    img.src = encodePathAsUrl(__dirname, `static/pathplanner/${imageName}`)
     img.onload = () => {
       this.fieldImage = img
       this.renderCanvas()
     }
     img.onerror = () => {
-      // Fallback to field25.png
-      if (imageName !== 'field25.png') {
+      if (imageName !== 'field26.png') {
         const fallback = new Image()
-        fallback.src = 'static/pathplanner/field25.png'
+        fallback.src = encodePathAsUrl(__dirname, 'static/pathplanner/field26.png')
         fallback.onload = () => {
           this.fieldImage = fallback
           this.renderCanvas()
@@ -162,35 +163,33 @@ export class FieldCanvas extends React.Component<IFieldCanvasProps> {
       }
     }
 
-    // 3. Render Old Path (Red / Dashed)
-    if (this.props.oldPath) {
+    const oldPathsToDraw =
+      this.props.oldPaths && this.props.oldPaths.length > 0
+        ? this.props.oldPaths
+        : this.props.oldPath
+        ? [this.props.oldPath]
+        : []
+
+    const newPathsToDraw =
+      this.props.newPaths && this.props.newPaths.length > 0
+        ? this.props.newPaths
+        : this.props.newPath
+        ? [this.props.newPath]
+        : []
+
+    // 3. Render Old Paths (Red / Dashed)
+    for (const op of oldPathsToDraw) {
       ctx.save()
       ctx.globalAlpha = this.props.oldOpacity ?? 0.85
-      this.drawTrajectory(
-        ctx,
-        this.props.oldPath,
-        '#f85149',
-        true,
-        width,
-        height,
-        fieldSize
-      )
+      this.drawTrajectory(ctx, op, '#f85149', true, width, height, fieldSize)
       ctx.restore()
     }
 
-    // 4. Render New Path (Green / Solid)
-    if (this.props.newPath) {
+    // 4. Render New Paths (Green / Solid)
+    for (const np of newPathsToDraw) {
       ctx.save()
       ctx.globalAlpha = this.props.newOpacity ?? 1.0
-      this.drawTrajectory(
-        ctx,
-        this.props.newPath,
-        '#2ea043',
-        false,
-        width,
-        height,
-        fieldSize
-      )
+      this.drawTrajectory(ctx, np, '#2ea043', false, width, height, fieldSize)
       ctx.restore()
     }
 

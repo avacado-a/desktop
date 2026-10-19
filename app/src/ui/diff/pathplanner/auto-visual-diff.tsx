@@ -44,7 +44,7 @@ export class AutoVisualDiff extends React.Component<
     super(props)
     this.state = {
       mode: 'overlay',
-      fieldYear: 'field25',
+      fieldYear: 'field26',
       showControlHandles: false,
       showRobotFootprints: true,
       showZonesAndMarkers: false,
@@ -162,6 +162,7 @@ export class AutoVisualDiff extends React.Component<
       return (
         <div className="pathplanner-raw-container">
           <PathPlannerDiffHeader
+            isAuto={true}
             mode={this.state.mode}
             onModeChanged={mode => this.setState({ mode })}
             fieldYear={this.state.fieldYear}
@@ -197,22 +198,25 @@ export class AutoVisualDiff extends React.Component<
       )
     }
 
-    // Pick path to render or stitched sequence
-    const firstOldKey = Array.from(this.props.oldResolvedPaths.keys())[0]
-    const firstNewKey = Array.from(this.props.newResolvedPaths.keys())[0]
-    const activeKey =
-      this.state.selectedPathName || firstNewKey || firstOldKey || null
+    const selectedKey = this.state.selectedPathName
+    const oldPath = selectedKey
+      ? this.props.oldResolvedPaths.get(selectedKey) || null
+      : null
+    const newPath = selectedKey
+      ? this.props.newResolvedPaths.get(selectedKey) || null
+      : null
 
-    const oldPath = activeKey
-      ? this.props.oldResolvedPaths.get(activeKey) || null
-      : null
-    const newPath = activeKey
-      ? this.props.newResolvedPaths.get(activeKey) || null
-      : null
+    const oldPaths = selectedKey
+      ? undefined
+      : Array.from(this.props.oldResolvedPaths.values())
+    const newPaths = selectedKey
+      ? undefined
+      : Array.from(this.props.newResolvedPaths.values())
 
     return (
       <div className="auto-visual-diff-layout">
         <PathPlannerDiffHeader
+          isAuto={true}
           mode={this.state.mode}
           onModeChanged={mode => this.setState({ mode })}
           fieldYear={this.state.fieldYear}
@@ -246,14 +250,28 @@ export class AutoVisualDiff extends React.Component<
 
         <div className="auto-content-split">
           <div className="field-side">
-            {activeKey && (
-              <div className="active-path-banner">
-                Previewing Path: <strong>{activeKey}</strong>
-              </div>
-            )}
+            <div className="active-path-banner">
+              {selectedKey ? (
+                <>
+                  Previewing Path: <strong>{selectedKey}</strong> (click node to
+                  show all)
+                </>
+              ) : (
+                <>
+                  Showing All Routine Paths (
+                  {Math.max(
+                    this.props.newResolvedPaths.size,
+                    this.props.oldResolvedPaths.size
+                  )}
+                  )
+                </>
+              )}
+            </div>
             <FieldCanvas
               oldPath={oldPath}
               newPath={newPath}
+              oldPaths={oldPaths}
+              newPaths={newPaths}
               settings={this.props.settings}
               navgrid={this.props.navgrid}
               fieldYear={this.state.fieldYear}
